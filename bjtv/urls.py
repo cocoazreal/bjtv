@@ -18,7 +18,10 @@ from django.contrib import admin
 from local import views as myviews
 
 urlpatterns = [
-    url(r'^admin/$', admin.site.urls),
-    url(r'^index/$', myviews.index, name='index'),
-    url(r'^register/$', myviews.register, name='register'),
+    url(r'^admin/', admin.site.urls),
+    url(r'^$', myviews.register, name='register'),
+    url(r'^register/', myviews.register, name='register'),
+    url(r'^login/', myviews.login, name='login'),
+    url(r'^add_url/', myviews.add_url, name='add_url'),
+    url(r'^get_url_detail/', myviews.get_url_detail, name='get_url_detail'),
 ]

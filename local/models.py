@@ -8,6 +8,25 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from datetime import datetime
+
+
+class User(models.Model):
+    id = models.AutoField(primary_key=True)
+    account = models.CharField(max_length=200)
+    password = models.CharField(max_length=100)
+    email = models.CharField(max_length=200)
+    url = models.TextField()
+    date = models.DateField(default=datetime.now().strftime("%Y-%m-%d"), blank=True)
+
+
+class Url(models.Model):
+    id = models.AutoField(primary_key=True)
+    url_name = models.CharField(max_length=200)
+    url_id = models.CharField(max_length=200, default="")
+    url_address = models.CharField(max_length=200)
+    url_rank = models.BooleanField(default=1)
+    date = models.DateField(default=datetime.now().strftime("%Y-%m-%d"), blank=True)
 
 
 class Action(models.Model):
@@ -110,4 +129,8 @@ class Visit(models.Model):
     bsl = models.CharField(max_length=255, blank=True, null=True)
     bsc = models.CharField(max_length=255, blank=True, null=True)
     visit_deep_actions = models.CharField(max_length=255, blank=True, null=True)
+
+
+
+
 
