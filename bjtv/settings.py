@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'local',
+    'corsheaders',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -49,6 +50,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'bjtv.urls'
@@ -106,7 +109,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+# access origin
+CORS_ORIGIN_WHITELIST = (
+    'http://182.61.55.81/',
+)
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
