@@ -54,6 +54,9 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
 ]
 
+# origin
+CORS_ORIGIN_ALLOW_ALL = True
+
 ROOT_URLCONF = 'bjtv.urls'
 
 TEMPLATES = [
@@ -109,10 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# access origin
-CORS_ORIGIN_WHITELIST = (
-    'http://182.61.55.81',
-)
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
