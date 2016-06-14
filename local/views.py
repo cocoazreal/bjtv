@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from .models import Action, User, Url
 from django.views.decorators.csrf import csrf_exempt
 import time
+import datetime
 import json
 
 
@@ -109,18 +110,43 @@ def add_url(request):
 
 
 @csrf_exempt
-def get_url_detail(request):
-    response = {'status': '', 'msg': ''}
+def get_user_url(request):
+    response = {'status': '', 'msg': '',}
+    data = list()
 
-    data = request.POST
+    get_data = request.POST
     try:
-        url_id = data['url_id']
+        account = get_data['account']
     except Exception:
         response['status'] = 3
         response['msg'] = "no enough argument"
         return HttpResponse(json.dumps(response))
 
-    all_ip = Action.objects.filter(idsite=url_id).values('ip').distinct().count()
-    return HttpResponse(all_ip)
+    # 获得用户所关注的url的概述 获得url所对应的id
+    urls = User.objects.get(account=account).url
+    url_list = urls.split("-")
+    url_id_list = list()
+    for url in url_list:
+        url_id = Url.objects.get(url_address=url).url_id
+        data.append({'name': url})
+        url_id_list.append(url_id)
+    # 选取相关时间
+    # tomorrow = int(time.mktime((datetime.date.today()+datetime.timedelta(days=1)).timetuple()))
+    # today = int(time.mktime(datetime.date.today().timetuple()))
+    # yesterday = int(time.mktime((datetime.date.today()+datetime.timedelta(days=-1)).timetuple()))
+    # week = int(time.mktime((datetime.date.today() + datetime.timedelta(days=-7)).timetuple()))
+    today = int(time.mktime(datetime.datetime(2016, 6, 7).timetuple()))
+    tomorrow = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=1)).timetuple()))
+    yesterday = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-1)).timetuple()))
+    week = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-7)).timetuple()))
+
+    for i in range(0,len(url_id_list)):
+        each_url_data = Action.objects.filter(idsite=url_id_list[i]).filter(field_date__gte=week).filter(field_date__lte=tomorrow)
+        data[i]['week'] = each_url_data.filter(field_date__lte=today).count()
+        data[i]['today'] = each_url_data.filter(field_date__gte=today).count()
+        data[i]['yesterday'] = each_url_data.filter(field_date__gte=yesterday).filter(field_date__lte=today).count()
+
+
+    return HttpResponse(json.dumps(data))
 
 

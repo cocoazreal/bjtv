@@ -23,5 +23,5 @@ urlpatterns = [
     url(r'^register/', myviews.register, name='register'),
     url(r'^login/', myviews.login, name='login'),
     url(r'^add_url/', myviews.add_url, name='add_url'),
-    url(r'^get_url_detail/', myviews.get_url_detail, name='get_url_detail'),
+    url(r'^get_user_url/', myviews.get_user_url, name='get_user_url'),
 ]
