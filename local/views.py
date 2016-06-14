@@ -140,12 +140,20 @@ def get_user_url(request):
     yesterday = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-1)).timetuple()))
     week = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-7)).timetuple()))
 
-    for i in range(0,len(url_id_list)):
+    for i in range(0, len(url_id_list)):
         each_url_data = Action.objects.filter(idsite=url_id_list[i]).filter(field_date__gte=week).filter(field_date__lte=tomorrow)
-        data[i]['week'] = each_url_data.filter(field_date__lte=today).count()
-        data[i]['today'] = each_url_data.filter(field_date__gte=today).count()
-        data[i]['yesterday'] = each_url_data.filter(field_date__gte=yesterday).filter(field_date__lte=today).count()
-
+        today_data = each_url_data.filter(field_date__gte=today)
+        data[i]['today'] = {}
+        data[i]['today']['pv'] = today_data.count()
+        data[i]['today']['ip'] = today_data.values('ip').distinct().count()
+        week_data = each_url_data.filter(field_date__lte=today)
+        data[i]['week'] = {}
+        data[i]['week']['pv'] = week_data.count()
+        data[i]['week']['ip'] = week_data.values('ip').distinct().count()
+        yesterday_data = each_url_data.filter(field_date__lte=today).filter(field_date__gte=yesterday)
+        data[i]['yesterday'] = {}
+        data[i]['yesterday']['pv'] = yesterday_data.count()
+        data[i]['yesterday']['ip'] = yesterday_data.values('ip').distinct().count()
 
     return HttpResponse(json.dumps(data))
 
