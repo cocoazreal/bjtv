@@ -133,7 +133,7 @@ def get_user_url(request):
     for url in url_list:
         if url != "":
             url_id = Url.objects.get(url_address=url).url_id
-            data.append({'name': url})
+            data.append({'name': url, 'id': url_id})
             url_id_list.append(url_id)
     # 选取相关时间
     # tomorrow = int(time.mktime((datetime.date.today()+datetime.timedelta(days=1)).timetuple()))
@@ -170,19 +170,35 @@ def delete_user_url(request):
     get_data = request.POST
     try:
         account = get_data['account']
-        url = get_data['url']
+        url_id = get_data['url_id']
     except Exception:
         response['status'] = 1
         response['msg'] = "no enough argument"
         return HttpResponse(json.dumps(response))
 
     user_data = User.objects.get(account=account)
+    url = Url.objects.get(url_id=url_id).url_address
     new_url = user_data.url.replace(url, "")
     user_data.url = new_url
     user_data.save()
     response['status'] = 0
     response['msg'] = "delete success"
     return HttpResponse(json.dumps(response))
+
+
+@csrf_exempt
+def get_url_detail(request):
+    response = {'status': "", 'msg': ""}
+
+    get_data = request.POST
+    try:
+        url_id = get_data['url_id']
+    except Exception:
+        response['status'] = 1
+        response['msg'] = "no enough argument"
+        return HttpResponse(json.dumps(response))
+
+
 
 
 
