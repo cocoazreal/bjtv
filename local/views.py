@@ -184,7 +184,7 @@ def delete_user_url(request):
     response['msg'] = "delete success"
     return HttpResponse(json.dumps(response))
 
-def 
+
 
 
 
