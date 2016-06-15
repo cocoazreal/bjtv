@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^login/', myviews.login, name='login'),
     url(r'^add_url/', myviews.add_url, name='add_url'),
     url(r'^get_user_url/', myviews.get_user_url, name='get_user_url'),
+    url(r'^delete_user_url/', myviews.delete_user_url, name='delete_user_url'),
 ]

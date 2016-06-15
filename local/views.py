@@ -124,12 +124,17 @@ def get_user_url(request):
 
     # 获得用户所关注的url的概述 获得url所对应的id
     urls = User.objects.get(account=account).url
+    if urls == "":
+        response['status'] = 4
+        response['msg'] = "need to add url"
+        return HttpResponse(json.dumps(response))
     url_list = urls.split("-")
     url_id_list = list()
     for url in url_list:
-        url_id = Url.objects.get(url_address=url).url_id
-        data.append({'name': url})
-        url_id_list.append(url_id)
+        if url != "":
+            url_id = Url.objects.get(url_address=url).url_id
+            data.append({'name': url})
+            url_id_list.append(url_id)
     # 选取相关时间
     # tomorrow = int(time.mktime((datetime.date.today()+datetime.timedelta(days=1)).timetuple()))
     # today = int(time.mktime(datetime.date.today().timetuple()))
@@ -156,5 +161,34 @@ def get_user_url(request):
         data[i]['yesterday']['ip'] = yesterday_data.values('ip').distinct().count()
 
     return HttpResponse(json.dumps(data))
+
+
+@csrf_exempt
+def delete_user_url(request):
+    response = {'status': "", 'msg': ""}
+
+    get_data = request.POST
+    try:
+        account = get_data['account']
+        url = get_data['url']
+    except Exception:
+        response['status'] = 1
+        response['msg'] = "no enough argument"
+        return HttpResponse(json.dumps(response))
+
+    user_data = User.objects.get(account=account)
+    new_url = user_data.url.replace(url, "")
+    user_data.url = new_url
+    user_data.save()
+    response['status'] = 0
+    response['msg'] = "delete success"
+    return HttpResponse(json.dumps(response))
+
+def 
+
+
+
+
+
 
 
