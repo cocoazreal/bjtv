@@ -306,7 +306,10 @@ def get_url_detail(request):
             data['max_avg_ip']['avg_ip'] = each_day_avg_ip
             data['max_avg_ip']['date'] = str(max_year) + "." + str(max_month) + "." + str(max_day)
 
-    return HttpResponse(json.dumps(data))
+    response['status'] = 0
+    response['msg'] = 'ok'
+    response['data'] = data
+    return HttpResponse(json.dumps(response))
 
 
 
