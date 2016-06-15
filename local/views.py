@@ -133,7 +133,8 @@ def get_user_url(request):
     for url in url_list:
         if url != "":
             url_id = Url.objects.get(url_address=url).url_id
-            data.append({'name': url, 'id': url_id})
+            url_name = Url.objects.get(url_address=url).url_name
+            data.append({'name': url_name, 'id': url_id})
             url_id_list.append(url_id)
     # 选取相关时间
     # tomorrow = int(time.mktime((datetime.date.today()+datetime.timedelta(days=1)).timetuple()))
