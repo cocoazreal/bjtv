@@ -144,18 +144,28 @@ def get_user_url(request):
     today = int(time.mktime(datetime.datetime(2016, 6, 7).timetuple()))
     tomorrow = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=1)).timetuple()))
     yesterday = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-1)).timetuple()))
-    week = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-7)).timetuple()))
+    week = list()
+    week.append(today)
+    for j in range(1, 8):
+        week.append(int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-j)).timetuple())))
 
     for i in range(0, len(url_id_list)):
-        each_url_data = Action.objects.filter(idsite=url_id_list[i]).filter(field_date__gte=week).filter(field_date__lte=tomorrow)
+        each_url_data = Action.objects.filter(idsite=url_id_list[i]).filter(field_date__gte=week[7]).filter(field_date__lte=tomorrow)
         today_data = each_url_data.filter(field_date__gte=today)
         data[i]['today'] = {}
         data[i]['today']['pv'] = today_data.count()
         data[i]['today']['ip'] = today_data.values('ip').distinct().count()
-        week_data = each_url_data.filter(field_date__lte=today)
-        data[i]['week'] = {}
-        data[i]['week']['pv'] = week_data.count()
-        data[i]['week']['ip'] = week_data.values('ip').distinct().count()
+
+        data[i]['week'] = {'pv': 0, 'ip': 0}
+        j = 7
+        while j > 0:
+            each_day_data = each_url_data.filter(field_date__gte=week[j]).filter(field_date__lte=week[j-1])
+            data[i]['week']['pv'] += each_day_data.count()
+            data[i]['week']['ip'] += each_day_data.values('ip').distinct().count()
+            j -= 1
+        # data[i]['week']['pv'] = week_data.count()
+        # data[i]['week']['ip'] = week_data.values('ip').distinct().count()
+
         yesterday_data = each_url_data.filter(field_date__lte=today).filter(field_date__gte=yesterday)
         data[i]['yesterday'] = {}
         data[i]['yesterday']['pv'] = yesterday_data.count()
@@ -198,6 +208,8 @@ def get_url_detail(request):
         response['status'] = 1
         response['msg'] = "no enough argument"
         return HttpResponse(json.dumps(response))
+
+
 
 
 
