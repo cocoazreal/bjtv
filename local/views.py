@@ -1,7 +1,7 @@
 # coding:utf-8
-from django.shortcuts import render
+from __future__ import division
 from django.http import HttpResponse
-from .models import Action, User, Url
+from .models import Action, User, Url, Daydata
 from django.views.decorators.csrf import csrf_exempt
 import time
 import datetime
@@ -111,21 +111,21 @@ def add_url(request):
 
 @csrf_exempt
 def get_user_url(request):
-    response = {'status': '', 'msg': '',}
+    response = {'status': '', 'msg': ''}
     data = list()
 
     get_data = request.POST
     try:
         account = get_data['account']
     except Exception:
-        response['status'] = 3
+        response['status'] = 1
         response['msg'] = "no enough argument"
         return HttpResponse(json.dumps(response))
 
     # 获得用户所关注的url的概述 获得url所对应的id
     urls = User.objects.get(account=account).url
     if urls == "":
-        response['status'] = 4
+        response['status'] = 2
         response['msg'] = "need to add url"
         return HttpResponse(json.dumps(response))
     url_list = urls.split("-")
@@ -136,42 +136,43 @@ def get_user_url(request):
             url_name = Url.objects.get(url_address=url).url_name
             data.append({'name': url_name, 'id': url_id})
             url_id_list.append(url_id)
-    # 选取相关时间
-    # tomorrow = int(time.mktime((datetime.date.today()+datetime.timedelta(days=1)).timetuple()))
-    # today = int(time.mktime(datetime.date.today().timetuple()))
-    # yesterday = int(time.mktime((datetime.date.today()+datetime.timedelta(days=-1)).timetuple()))
-    # week = int(time.mktime((datetime.date.today() + datetime.timedelta(days=-7)).timetuple()))
-    today = int(time.mktime(datetime.datetime(2016, 6, 7).timetuple()))
-    tomorrow = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=1)).timetuple()))
-    yesterday = int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-1)).timetuple()))
-    week = list()
-    week.append(today)
-    for j in range(1, 8):
-        week.append(int(time.mktime((datetime.datetime(2016, 6, 7) + datetime.timedelta(days=-j)).timetuple())))
+
+    # timestamp = time.time()
+    timestamp = int(time.mktime(time.strptime("2016-06-08 00:00:00", '%Y-%m-%d %H:%M:%S')))
+    timestruct = time.localtime(timestamp)
+    year = time.strftime("%Y", timestruct)
+    month = time.strftime("%m", timestruct)
+    week = time.strftime("%W", timestruct)
+    day = time.strftime("%d", timestruct)
+    # 昨天的数据要单独处理方式出现跨年 跨月而不正常的现象
+    yesterday_timestamp = int(time.mktime((datetime.datetime(2016, 6, 8) + datetime.timedelta(days=-1)).timetuple()))
+    yesterday_timestruct = time.localtime(yesterday_timestamp)
+    yesterday_year = time.strftime("%Y", yesterday_timestruct)
+    yesterday_month = time.strftime("%m", yesterday_timestruct)
+    yesterday_day = time.strftime("%d", yesterday_timestruct)
 
     for i in range(0, len(url_id_list)):
-        each_url_data = Action.objects.filter(idsite=url_id_list[i]).filter(field_date__gte=week[7]).filter(field_date__lte=tomorrow)
-        today_data = each_url_data.filter(field_date__gte=today)
-        data[i]['today'] = {}
-        data[i]['today']['pv'] = today_data.count()
-        data[i]['today']['ip'] = today_data.values('ip').distinct().count()
+        week_data = Daydata.objects.filter(idsite=url_id_list[i]).filter(year=year).filter(week=week)
+        data[i]['week'] = {'ip': 0, 'pv': 0}
+        for each in week_data:
+            data[i]['week']['ip'] += each.ip
+            data[i]['week']['pv'] += each.pv
+        today_data = Daydata.objects.filter(idsite=url_id_list[i]).filter(year=year).filter(month=month).filter(day=day)
+        data[i]['today'] = {'ip': 0, 'pv': 0}
+        for each in today_data:
+            data[i]['today']['ip'] += each.ip
+            data[i]['today']['pv'] += each.pv
+        yesterday_data = Daydata.objects.filter(idsite=url_id_list[i]).filter(year=yesterday_year).\
+            filter(month=yesterday_month).filter(day=yesterday_day)
+        data[i]['yesterday'] = {'ip': 0, 'pv': 0}
+        for each in yesterday_data:
+            data[i]['yesterday']['ip'] += each.ip
+            data[i]['yesterday']['pv'] += each.pv
 
-        data[i]['week'] = {'pv': 0, 'ip': 0}
-        j = 7
-        while j > 0:
-            each_day_data = each_url_data.filter(field_date__gte=week[j]).filter(field_date__lte=week[j-1])
-            data[i]['week']['pv'] += each_day_data.count()
-            data[i]['week']['ip'] += each_day_data.values('ip').distinct().count()
-            j -= 1
-        # data[i]['week']['pv'] = week_data.count()
-        # data[i]['week']['ip'] = week_data.values('ip').distinct().count()
-
-        yesterday_data = each_url_data.filter(field_date__lte=today).filter(field_date__gte=yesterday)
-        data[i]['yesterday'] = {}
-        data[i]['yesterday']['pv'] = yesterday_data.count()
-        data[i]['yesterday']['ip'] = yesterday_data.values('ip').distinct().count()
-
-    return HttpResponse(json.dumps(data))
+    response['status'] = 0
+    response['msg'] = 'ok'
+    response['data'] = data
+    return HttpResponse(json.dumps(response))
 
 
 @csrf_exempt
@@ -208,6 +209,108 @@ def get_url_detail(request):
         response['status'] = 1
         response['msg'] = "no enough argument"
         return HttpResponse(json.dumps(response))
+
+    url_data = Url.objects.get(url_id=url_id)
+    response['name'] = url_data.url_name
+    response['address'] = url_data.url_address
+
+    # timestamp = time.time()
+    timestamp = int(time.mktime(time.strptime("2016-06-08 00:00:00", '%Y-%m-%d %H:%M:%S')))
+    timestruct = time.localtime(timestamp)
+    year = time.strftime("%Y", timestruct)
+    month = time.strftime("%m", timestruct)
+    week = time.strftime("%W", timestruct)
+    day = time.strftime("%d", timestruct)
+    # 昨天的数据要单独处理方式出现跨年 跨月而不正常的现象
+    yesterday_timestamp = int(time.mktime((datetime.datetime(2016, 6, 8) + datetime.timedelta(days=-1)).timetuple()))
+    yesterday_timestruct = time.localtime(yesterday_timestamp)
+    yesterday_year = time.strftime("%Y", yesterday_timestruct)
+    yesterday_month = time.strftime("%m", yesterday_timestruct)
+    yesterday_day = time.strftime("%d", yesterday_timestruct)
+
+    data = {}
+    # 总的
+    all_data = Daydata.objects.filter(idsite=url_id)
+    data['all'] = {'ip': 0, 'pv': 0, 'uv': 0}
+    for each in all_data:
+        data['all']['ip'] += each.ip
+        data['all']['pv'] += each.pv
+        data['all']['uv'] += each.uv
+    # 今天
+    today_data = Daydata.objects.filter(idsite=url_id).filter(year=year).filter(month=month).filter(day=day)
+    data['today'] = {'ip': 0, 'pv': 0, 'uv': 0}
+    for each in today_data:
+        data['today']['ip'] += each.ip
+        data['today']['pv'] += each.pv
+        data['today']['uv'] += each.uv
+    # 昨天
+    yesterday_data = Daydata.objects.filter(idsite=url_id).filter(year=yesterday_year).filter(
+        month=yesterday_month).filter(day=yesterday_day)
+    data['yesterday'] = {'ip': 0, 'pv': 0, 'uv': 0}
+    for each in yesterday_data:
+        data['yesterday']['ip'] += each.ip
+        data['yesterday']['pv'] += each.pv
+        data['yesterday']['uv'] += each.uv
+    # 今年
+    year_data = Daydata.objects.filter(idsite=url_id).filter(year=year)
+    data['year'] = {'ip': 0, 'pv': 0, 'uv': 0}
+    for each in year_data:
+        data['year']['ip'] += each.ip
+        data['year']['pv'] += each.pv
+        data['year']['uv'] += each.uv
+    # 本月
+    nonth_data = Daydata.objects.filter(idsite=url_id).filter(year=year).filter(month=month)
+    data['month'] = {'ip': 0, 'pv': 0, 'uv': 0}
+    for each in nonth_data:
+        data['month']['ip'] += each.ip
+        data['month']['pv'] += each.pv
+        data['month']['uv'] += each.uv
+    # 总天数
+    all_days = Daydata.objects.values('year', 'month', 'day').distinct().count()
+    # 平均每天
+    data['ave_day'] = {'ip': 0, 'pv': 0, 'uv': 0}
+    data['ave_day']['ip'] = int(data['all']['ip'] / all_days)
+    data['ave_day']['pv'] = int(data['all']['pv'] / all_days)
+    data['ave_day']['uv'] = int(data['all']['uv'] / all_days)
+    # 历史最高
+    days = Daydata.objects.values('year', 'month', 'day').distinct()
+    data['max_ip'] = {'ip': 0, 'date': ""}
+    data['max_uv'] = {'uv': 0, 'date': ""}
+    data['max_pv'] = {'pv': 0, 'date': ""}
+    data['max_avg_ip'] = {'avg_ip': 0, 'date': ""}
+    for each_day in days:
+        each_day_ip = 0
+        each_day_pv = 0
+        each_day_uv = 0
+
+        max_year = each_day['year']
+        max_month = each_day['month']
+        max_day = each_day['day']
+        max_data = Daydata.objects.filter(year=max_year).filter(month=max_month).filter(day=max_day)
+        for each_data in max_data:
+            each_day_ip += each_data.ip
+            each_day_pv += each_data.pv
+            each_day_uv += each_data.uv
+        each_day_avg_ip = ("%.2f" % (each_day_pv / each_day_ip))
+
+        if each_day_ip >= data['max_ip']['ip']:
+            data['max_ip']['ip'] = each_day_ip
+            data['max_ip']['date'] = str(max_year) + "." + str(max_month) + "." + str(max_day)
+        if each_day_pv >= data['max_pv']['pv']:
+            data['max_pv']['pv'] = each_day_pv
+            data['max_pv']['date'] = str(max_year) + "." + str(max_month) + "." + str(max_day)
+        if each_day_uv >= data['max_uv']['uv']:
+            data['max_uv']['uv'] = each_day_uv
+            data['max_uv']['date'] = str(max_year) + "." + str(max_month) + "." + str(max_day)
+        if each_day_avg_ip >= data['max_avg_ip']['avg_ip']:
+            data['max_avg_ip']['avg_ip'] = each_day_avg_ip
+            data['max_avg_ip']['date'] = str(max_year) + "." + str(max_month) + "." + str(max_day)
+
+    return HttpResponse(json.dumps(data))
+
+
+
+
 
 
 

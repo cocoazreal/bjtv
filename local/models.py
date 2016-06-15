@@ -8,25 +8,19 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from datetime import datetime
 
 
-class User(models.Model):
-    id = models.AutoField(primary_key=True)
-    account = models.CharField(max_length=200)
-    password = models.CharField(max_length=100)
-    email = models.CharField(max_length=200)
-    url = models.TextField()
-    date = models.DateField(default=datetime.now().strftime("%Y-%m-%d"), blank=True)
-
-
-class Url(models.Model):
-    id = models.AutoField(primary_key=True)
-    url_name = models.CharField(max_length=200)
-    url_id = models.CharField(max_length=200, default="")
-    url_address = models.CharField(max_length=200)
-    url_rank = models.BooleanField(default=1)
-    date = models.DateField(default=datetime.now().strftime("%Y-%m-%d"), blank=True)
+class Daydata(models.Model):
+    idsite = models.CharField(max_length=200)
+    ip = models.IntegerField()
+    pv = models.IntegerField()
+    avg_ip = models.FloatField(default=0)
+    uv = models.IntegerField()
+    datetime = models.CharField(max_length=100)
+    day = models.IntegerField()
+    week = models.IntegerField()
+    month = models.IntegerField()
+    year = models.IntegerField()
 
 
 class Action(models.Model):
@@ -74,15 +68,20 @@ class Action(models.Model):
     bizd = models.CharField(max_length=1024, blank=True, null=True)
 
 
-class Statistics(models.Model):
-    keyid = models.CharField(max_length=255)
-    destid = models.CharField(max_length=255)
-    idvisit = models.CharField(max_length=255, blank=True, null=True)
-    idaction = models.CharField(max_length=255, blank=True, null=True)
-    idvisitor = models.CharField(max_length=255, blank=True, null=True)
-    field_date = models.BigIntegerField(db_column='_date', blank=True, null=True)  # Field renamed because it started with '_'.
-    field_key = models.CharField(db_column='_key', max_length=255, blank=True, null=True)  # Field renamed because it started with '_'.
-    field_value = models.CharField(db_column='_value', max_length=1024, blank=True, null=True)  # Field renamed because it started with '_'.
+class Url(models.Model):
+    url_name = models.CharField(max_length=200)
+    url_address = models.CharField(max_length=200)
+    url_rank = models.IntegerField()
+    date = models.DateTimeField()
+    url_id = models.CharField(max_length=200)
+
+
+class User(models.Model):
+    account = models.CharField(max_length=200)
+    password = models.CharField(max_length=100)
+    email = models.CharField(max_length=200)
+    url = models.TextField()
+    date = models.DateTimeField()
 
 
 class Visit(models.Model):
@@ -129,8 +128,4 @@ class Visit(models.Model):
     bsl = models.CharField(max_length=255, blank=True, null=True)
     bsc = models.CharField(max_length=255, blank=True, null=True)
     visit_deep_actions = models.CharField(max_length=255, blank=True, null=True)
-
-
-
-
 
