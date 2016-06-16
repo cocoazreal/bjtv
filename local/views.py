@@ -214,15 +214,16 @@ def get_url_detail(request):
     response['name'] = url_data.url_name
     response['address'] = url_data.url_address
 
-    # timestamp = time.time()
-    timestamp = int(time.mktime(time.strptime("2016-06-08 00:00:00", '%Y-%m-%d %H:%M:%S')))
+    timestamp = time.time()
+    # timestamp = int(time.mktime(time.strptime("2016-06-08 00:00:00", '%Y-%m-%d %H:%M:%S')))
     timestruct = time.localtime(timestamp)
     year = time.strftime("%Y", timestruct)
     month = time.strftime("%m", timestruct)
     week = time.strftime("%W", timestruct)
     day = time.strftime("%d", timestruct)
     # 昨天的数据要单独处理方式出现跨年 跨月而不正常的现象
-    yesterday_timestamp = int(time.mktime((datetime.datetime(2016, 6, 8) + datetime.timedelta(days=-1)).timetuple()))
+    yesterday_timestamp = timestamp - 3600 * 24
+        # int(time.mktime((datetime.datetime(2016, 6, 8) + datetime.timedelta(days=-1)).timetuple()))
     yesterday_timestruct = time.localtime(yesterday_timestamp)
     yesterday_year = time.strftime("%Y", yesterday_timestruct)
     yesterday_month = time.strftime("%m", yesterday_timestruct)
@@ -310,6 +311,120 @@ def get_url_detail(request):
     response['msg'] = 'ok'
     response['data'] = data
     return HttpResponse(json.dumps(response))
+
+
+@csrf_exempt
+def get_url_rank(request):
+    response = {'status': "", 'msg': ""}
+
+    get_data = request.POST
+    try:
+        url_id = get_data['url_id']
+        date_type = get_data['date_type']
+    except Exception:
+        response['status'] = 1
+        response['msg'] = "no enough argument"
+        return HttpResponse(json.dumps(response))
+
+    # 获得所有url_id
+    all_url_id = Url.objects.all()
+    url_id_list = list()
+    for each_url_data_id in all_url_id:
+        url_id_list.append(each_url_data_id.url_id)
+
+    timestamp = time.time()
+    data = {'ip': [], 'pv': []}
+    # 按日往前推30日
+    if date_type == '0':
+        for i in range(0, 30):
+            timestruct = time.localtime(timestamp - i * 3600 * 24)
+            year = time.strftime("%Y", timestruct)
+            month = time.strftime("%m", timestruct)
+            day = time.strftime("%d", timestruct)
+
+            all_ip = list()
+            all_pv = list()
+            for each_url_id in url_id_list:
+                each_pv = 0
+                each_ip = 0
+                each_url_data = Daydata.objects.filter(idsite=each_url_id).filter(year=year).filter(month=month).filter(day=day)
+                for each in each_url_data:
+                    each_ip += each.ip
+                    each_pv += each.pv
+                all_ip.append(each_ip)
+                all_pv.append(each_pv)
+            all_ip.sort(reverse=True)
+            all_pv.sort(reverse=True)
+
+            this_day = Daydata.objects.filter(idsite=url_id).filter(year=year).filter(month=month).filter(day=day)
+            ip = 0
+            pv = 0
+            for each_data in this_day:
+                ip += each_data.ip
+                pv += each_data.pv
+            data['ip'].append(all_ip.index(ip) + 1)
+            data['pv'].append(all_pv.index(pv) + 1)
+    # 按周往前推30周
+    if date_type == '1':
+        for i in range(0, 30):
+            timestruct = time.localtime(timestamp - i * 3600 * 24 * 7)
+            year = time.strftime("%Y", timestruct)
+            week = time.strftime("%W", timestruct)
+
+            all_ip = list()
+            all_pv = list()
+            for each_url_id in url_id_list:
+                each_pv = 0
+                each_ip = 0
+                each_url_data = Daydata.objects.filter(idsite=each_url_id).filter(year=year).filter(week=week)
+                for each in each_url_data:
+                    each_ip += each.ip
+                    each_pv += each.pv
+                all_ip.append(each_ip)
+                all_pv.append(each_pv)
+            all_ip.sort(reverse=True)
+            all_pv.sort(reverse=True)
+
+            this_day = Daydata.objects.filter(idsite=url_id).filter(year=year).filter(week=week)
+            ip = 0
+            pv = 0
+            for each_data in this_day:
+                ip += each_data.ip
+                pv += each_data.pv
+            data['ip'].append(all_ip.index(ip) + 1)
+            data['pv'].append(all_pv.index(pv) + 1)
+    # 按月往前推30个月
+    if date_type == '2':
+        for i in range(0, 30):
+            timestruct = time.localtime(timestamp - i * 3600 * 24 * 30)
+            year = time.strftime("%Y", timestruct)
+            month = time.strftime("%m", timestruct)
+
+            all_ip = list()
+            all_pv = list()
+            for each_url_id in url_id_list:
+                each_pv = 0
+                each_ip = 0
+                each_url_data = Daydata.objects.filter(idsite=each_url_id).filter(year=year).filter(month=month)
+                for each in each_url_data:
+                    each_ip += each.ip
+                    each_pv += each.pv
+                all_ip.append(each_ip)
+                all_pv.append(each_pv)
+            all_ip.sort(reverse=True)
+            all_pv.sort(reverse=True)
+
+            this_day = Daydata.objects.filter(idsite=url_id).filter(year=year).filter(month=month)
+            ip = 0
+            pv = 0
+            for each_data in this_day:
+                ip += each_data.ip
+                pv += each_data.pv
+            data['ip'].append(all_ip.index(ip) + 1)
+            data['pv'].append(all_pv.index(pv) + 1)
+
+    return HttpResponse(json.dumps(data))
+
 
 
 
