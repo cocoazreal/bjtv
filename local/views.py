@@ -426,7 +426,7 @@ def get_url_rank(request):
     response['status'] = 0
     response['msg'] = 'ok'
     response['data'] = data
-    return HttpResponse(json.dumps(data))
+    return HttpResponse(json.dumps(response))
 
 
 @csrf_exempt

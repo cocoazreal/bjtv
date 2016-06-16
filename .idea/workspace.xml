@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e43304f5-80ea-4b6c-b4b1-1833cb21e273" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bjtv/urls.py" afterPath="$PROJECT_DIR$/bjtv/urls.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deal_data.py" afterPath="$PROJECT_DIR$/deal_data.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/local/models.py" afterPath="$PROJECT_DIR$/local/models.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/local/views.py" afterPath="$PROJECT_DIR$/local/views.py" />
     </list>
     <ignored path="bjtv.iws" />
@@ -46,8 +43,8 @@
       <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/local/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="747">
-              <caret line="428" column="41" selection-start-line="428" selection-start-column="41" selection-end-line="428" selection-end-column="41" />
+            <state relative-caret-position="348">
+              <caret line="428" column="43" selection-start-line="428" selection-start-column="43" selection-end-line="428" selection-end-column="43" />
               <folding>
                 <element signature="e#15#46#0" expanded="true" />
               </folding>
@@ -1091,8 +1088,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/local/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="747">
-          <caret line="428" column="41" selection-start-line="428" selection-start-column="41" selection-end-line="428" selection-end-column="41" />
+        <state relative-caret-position="348">
+          <caret line="428" column="43" selection-start-line="428" selection-start-column="43" selection-end-line="428" selection-end-column="43" />
           <folding>
             <element signature="e#15#46#0" expanded="true" />
           </folding>
