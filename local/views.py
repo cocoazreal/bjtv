@@ -423,7 +423,47 @@ def get_url_rank(request):
             data['ip'].append(all_ip.index(ip) + 1)
             data['pv'].append(all_pv.index(pv) + 1)
 
+    response['status'] = 0
+    response['msg'] = 'ok'
+    response['data'] = data
     return HttpResponse(json.dumps(data))
+
+
+@csrf_exempt
+def get_url_flow(request):
+    response = {'status': "", 'msg': ""}
+
+    get_data = request.POST
+    try:
+        url_id = get_data['url_id']
+        strat_timestamp = int(get_data['start_timestamp'])
+        end_timestamp = int(get_data['end_timestamp'])
+    except Exception:
+        response['status'] = 1
+        response['msg'] = "no enough argument"
+        return HttpResponse(json.dumps(response))
+
+    all_data = Daydata.objects.filter(idsite=url_id).filter(timestamp__gte=strat_timestamp).filter(timestamp__lt=end_timestamp)
+    data = list()
+    for each in all_data:
+        each_data = {}
+        each_data['ip'] = each.ip
+        each_data['pv'] = each.pv
+        each_data['uv'] = each.uv
+        each_data['date'] = each.datetime
+        each_data['weekday'] = time.strftime("%w", time.localtime(each.timestamp))
+        each_data['day'] = each.day
+        each_data['week'] = each.week
+        data.append(each_data)
+
+    response['status'] = 0
+    response['msg'] = 'ok'
+    response['data'] = data
+
+    return HttpResponse(json.dumps(response))
+
+
+
 
 
 

@@ -58,8 +58,8 @@ def get_data(idsite):
             uv.add(each[1])
             i += 1
             avg_ip = ("%.2f" % (len(pv) / len(ip)))
-        sql2 = 'update day_data set ip=%s, pv=%s, uv=%s , avg_ip = %s where datetime=%s'
-        all_data = (len(ip), len(pv), len(uv), avg_ip, x[0])
+        sql2 = 'update day_data set ip=%s, pv=%s, uv=%s , `timestamp`= %s where datetime=%s'
+        all_data = (len(ip), len(pv), len(uv), timestamp, x[0])
         cursor.execute(sql2, all_data)
 
     conn.commit()

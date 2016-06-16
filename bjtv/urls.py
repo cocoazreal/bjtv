@@ -27,4 +27,5 @@ urlpatterns = [
     url(r'^delete_user_url/', myviews.delete_user_url, name='delete_user_url'),
     url(r'^get_url_detail', myviews.get_url_detail, name='get_url_detail'),
     url(r'^get_url_rank', myviews.get_url_rank, name='get_url_rank'),
+    url(r'^get_url_flow', myviews.get_url_flow, name="get_url_flow"),
 ]
