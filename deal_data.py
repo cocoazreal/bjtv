@@ -44,27 +44,38 @@ def get_data(idsite):
     for x in cursor.fetchall():
         timestamp = int(time.mktime(time.strptime(x[0], '%Y-%m-%d %H:%M:%S')))
         other_timestamp = timestamp + 3600
-        sql1 = "select ip,idvisit from local_action where `_date` >= %s and `_date` < %s"
+        sql1 = "select ip,idvisit,cookie from local_action where `_date` >= %s and `_date` < %s"
         time_data = (timestamp, other_timestamp)
         cursor.execute(sql1, time_data)
         data = cursor.fetchall()
         ip = set()
         pv = list()
         uv = set()
+        new_uv = set()
         for each in data:
-            print i
+            # print i
             pv.append(each[0])
             ip.add(each[0])
             uv.add(each[1])
+            if each[2] != '1':
+                print each[2]
+                new_uv.add(each[1])
             i += 1
-            avg_ip = ("%.2f" % (len(pv) / len(ip)))
-        sql2 = 'update day_data set ip=%s, pv=%s, uv=%s , `timestamp`= %s where datetime=%s'
-        all_data = (len(ip), len(pv), len(uv), timestamp, x[0])
+        sql2 = 'update day_data set ip=%s, pv=%s, uv=%s , new_uv=%s,`timestamp`= %s where datetime=%s'
+        all_data = (len(ip), len(pv), len(uv), len(new_uv), timestamp, x[0])
         cursor.execute(sql2, all_data)
 
     conn.commit()
     cursor.close()
     conn.close()
+    pass
+
+def deal_url():
+    conn = MySQLdb.connect(host="localhost", user="root", passwd="067116", db="bjtv", charset="utf8")
+    cursor = conn.cursor()
+
+
+
     pass
 
 

@@ -215,7 +215,9 @@ def get_url_detail(request):
     response['address'] = url_data.url_address
 
     timestamp = time.time()
-    # timestamp = int(time.mktime(time.strptime("2016-06-08 00:00:00", '%Y-%m-%d %H:%M:%S')))
+    timestamp_30 = timestamp - 3600
+    response['online'] = Action.objects.filter(idsite=url_id).\
+        filter(field_date__gte=timestamp_30).filter(field_date__lte=timestamp).values('ip').count()
     timestruct = time.localtime(timestamp)
     year = time.strftime("%Y", timestruct)
     month = time.strftime("%m", timestruct)
@@ -223,7 +225,6 @@ def get_url_detail(request):
     day = time.strftime("%d", timestruct)
     # 昨天的数据要单独处理方式出现跨年 跨月而不正常的现象
     yesterday_timestamp = timestamp - 3600 * 24
-        # int(time.mktime((datetime.datetime(2016, 6, 8) + datetime.timedelta(days=-1)).timetuple()))
     yesterday_timestruct = time.localtime(yesterday_timestamp)
     yesterday_year = time.strftime("%Y", yesterday_timestruct)
     yesterday_month = time.strftime("%m", yesterday_timestruct)
@@ -436,14 +437,14 @@ def get_url_flow(request):
     get_data = request.POST
     try:
         url_id = get_data['url_id']
-        strat_timestamp = int(get_data['start_timestamp'])
+        start_timestamp = int(get_data['start_timestamp'])
         end_timestamp = int(get_data['end_timestamp'])
     except Exception:
         response['status'] = 1
         response['msg'] = "no enough argument"
         return HttpResponse(json.dumps(response))
 
-    all_data = Daydata.objects.filter(idsite=url_id).filter(timestamp__gte=strat_timestamp).filter(timestamp__lt=end_timestamp)
+    all_data = Daydata.objects.filter(idsite=url_id).filter(timestamp__gte=start_timestamp).filter(timestamp__lt=end_timestamp)
     data = list()
     for each in all_data:
         each_data = {}
@@ -462,6 +463,65 @@ def get_url_flow(request):
 
     return HttpResponse(json.dumps(response))
 
+
+@csrf_exempt
+def get_url_source(request):
+    response = {'status': "", 'msg': ""}
+
+    get_data = request.POST
+    try:
+        key_word = get_data['key_word']
+        url_id = get_data['url_id']
+        start_timestamp = int(get_data['start_timestamp'])
+        end_timestamp = int(get_data['end_timestamp'])
+        page = int(get_data['page'])
+    except Exception:
+        response['status'] = 1
+        response['msg'] = "no enough argument"
+        return HttpResponse(json.dumps(response))
+
+    url_list = list()
+    req = list()
+
+    if key_word == "":
+        all__data = Action.objects.filter(idsite=url_id).filter(field_date__gte=start_timestamp).filter(
+            field_date__lt=end_timestamp)
+    else:
+        all__data = Action.objects.filter(idsite=url_id).filter(field_date__gte=start_timestamp).filter(
+            field_date__lt=end_timestamp).filter(url__contains=key_word)
+    url_data = all__data.values('url').distinct()
+
+    # 获得这段时间内所有的ip
+
+    # 获得所有的url
+    for each in url_data:
+        url_list.append(each['url'])
+    # 获得对应页数5个的url的数据
+    all_ip = set()
+    all_pv = list()
+    all_uv = set()
+    for each_url in url_list:
+        each_data = all__data.filter(url=each_url)
+
+        ip = set()
+        pv = list()
+        uv = set()
+        for every in each_data:
+            ip.add(every.ip)
+            pv.append(every.ip)
+            uv.add(every.idvisit)
+            all_ip.add(every.ip)
+            all_pv.append(every.ip)
+            all_uv.add(every.idvisit)
+        req.append({'name': each_url, 'ip': len(ip), 'pv': len(pv), 'uv': len(uv)})
+    req = req[page: page + 5]
+    req.append({'name': 'all', 'ip': len(all_ip), 'pv': len(all_pv), 'uv': len(all_uv)})
+
+    response['status'] = 0
+    response['msg'] = 'ok'
+    response['data'] = req
+
+    return HttpResponse(json.dumps(response))
 
 
 
